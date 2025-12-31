@@ -702,6 +702,23 @@
         padding-top: 12px;
       }
 
+      .disclaimer {
+        margin-top: 30px;
+        padding: 15px;
+        background-color: rgba(244, 162, 97, 0.1);
+        border-radius: var(--radius-sm);
+        border-left: 4px solid var(--warning);
+        font-size: 0.85rem;
+        color: #a16207;
+        text-align: center;
+        font-style: italic;
+      }
+
+      .disclaimer i {
+        margin-right: 8px;
+        color: var(--warning);
+      }
+
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -1212,6 +1229,13 @@
           <i class="fas fa-exclamation-triangle"></i>
           <span class="error-message"></span>
         </div>
+
+        <!-- DISCLAIMER ADDED HERE -->
+        <div class="disclaimer">
+          <i class="fas fa-exclamation-triangle"></i>
+          Pricing is subject to change if wind speed, snow load, or seismic
+          engineering is needed
+        </div>
       </div>
     </div>
     <div id="fab" class="fab hidden">
@@ -1225,40 +1249,80 @@
         linearFeet: 52,
       };
 
+      // Define trailer configurations based on spreadsheet data
+      // Now using TRAILER_RATES labels directly
+      const PLAN_TRAILER_CONFIGS = {
+        // Plans with garages from spreadsheet
+        "Ember Modern 1-Bed/1-Bath (Garage Model)": "One 40' trailer",
+        "Ember Craftsman 1-Bed/1-Bath (Garage Model)": "One 52' trailer",
+        "Ember Farmhouse 1-Bed/1-Bath (Garage Model)": "One 40' trailer",
+        "Ember Craftsman Studio B (Garage Model)": "One 40' trailer",
+        "Ember Modern Studio B (Garage Model)": "One 40' trailer",
+        "Ember Farmhouse Studio B (Garage Model)": "One 40' trailer",
+        "Ember Modern 2-Bed/1-Bath (Garage Model)": "One 52' trailer",
+        "Ember Craftsman 2-Bed/1-Bath (Garage Model)": "One 52' trailer",
+        "Ember Farmhouse 2-Bed/1-Bath (Garage Model)": "One 52' trailer",
+        "Lookout WG": "One 52' trailer",
+        "Rucker WG": "Two 40' trailers",
+        Bungalo: "Two 52' trailers",
+        "Ember Modern 3-Bed/2-Bath (With Garage)": "One 52' trailer",
+        "Ember Craftsman 3-Bed/2-Bath (With Garage)": "Two 40' trailers",
+        "Ember Farmhouse 3-Bed/2-Bath (With Garage)":
+          "One 30' + One 40' trailer",
+        "Ember Craftsman 3-Bed/2.5 Bath (With Garage)":
+          "One 40' + One 52' trailer",
+        "Ember Modern 3-Bed/2.5 Bath (With Garage)":
+          "One 40' + One 52' trailer",
+        "Ember Farmhouse 3-Bed/2.5 Bath (With Garage)":
+          "One 40' + One 52' trailer",
+        Mohave: "Two 52' trailers",
+      };
+
+      // Updated base rates with $1,000 increase applied
       const TRAILER_RATES = {
-        RATE_40: {
-          maxLinearFeet: 42,
+        "One 30' trailer": {
+          rate: 1.85,
+          trailerCount: 1,
+          minChargePerTrailer: 1500,
+        },
+        "One 40' trailer": {
           rate: 2.22,
-          label: "One 40' trailer",
           trailerCount: 1,
           minChargePerTrailer: 1500,
         },
-        RATE_53: {
-          maxLinearFeet: 55,
+        "One 52' trailer": {
           rate: 3.6,
-          label: "One 53' trailer",
           trailerCount: 1,
           minChargePerTrailer: 1500,
         },
-        RATE_84: {
-          maxLinearFeet: 84,
+        "Two 40' trailers": {
           rate: 4.4,
-          label: "Two 40' trailers",
           trailerCount: 2,
           minChargePerTrailer: 1500,
         },
-        RATE_126: {
-          maxLinearFeet: 126,
-          rate: 6.8,
-          label: "Three 40' trailers",
+        "One 30' + One 40' trailer": {
+          rate: 4.1,
+          trailerCount: 2,
+          minChargePerTrailer: 1500,
+        },
+        "One 40' + One 52' trailer": {
+          rate: 5.8,
+          trailerCount: 2,
+          minChargePerTrailer: 1500,
+        },
+        "Two 52' trailers": {
+          rate: 7.2,
+          trailerCount: 2,
+          minChargePerTrailer: 1500,
+        },
+        "Three 40' trailers": {
+          rate: 6.66,
           trailerCount: 3,
           minChargePerTrailer: 1500,
         },
-        RATE_127_PLUS: {
-          maxLinearFeet: 999,
-          rate: 9.0,
-          label: "Four 40' trailers",
-          trailerCount: 4,
+        "One 52' + Two 40' trailers": {
+          rate: 8.82,
+          trailerCount: 3,
           minChargePerTrailer: 1500,
         },
       };
@@ -1275,17 +1339,32 @@
         40: 0.4,
       };
 
-      function getTrailerConfig(linearFeet) {
-        if (linearFeet <= 42) return TRAILER_RATES.RATE_40;
-        if (linearFeet <= 55) return TRAILER_RATES.RATE_53;
-        if (linearFeet <= 84) return TRAILER_RATES.RATE_84;
-        if (linearFeet <= 126) return TRAILER_RATES.RATE_126;
-        return TRAILER_RATES.RATE_127_PLUS;
+      function getTrailerConfigForPlan(planName) {
+        // First check if the plan is in PLAN_TRAILER_CONFIGS
+        if (PLAN_TRAILER_CONFIGS[planName]) {
+          const trailerLabel = PLAN_TRAILER_CONFIGS[planName];
+          return TRAILER_RATES[trailerLabel];
+        }
+
+        // Otherwise, calculate based on linear feet
+        if (ADU_PLAN.linearFeet <= 42) {
+          return TRAILER_RATES["One 40' trailer"];
+        } else if (ADU_PLAN.linearFeet <= 55) {
+          return TRAILER_RATES["One 52' trailer"];
+        } else if (ADU_PLAN.linearFeet <= 84) {
+          return TRAILER_RATES["Two 40' trailers"];
+        } else {
+          return TRAILER_RATES["Three 40' trailers"];
+        }
       }
 
       function calculateShippingCost(distance) {
-        const trailerConfig = getTrailerConfig(ADU_PLAN.linearFeet);
-        const baseCost = distance * trailerConfig.rate;
+        const trailerConfig = getTrailerConfigForPlan(ADU_PLAN.name);
+        const trailerLabel =
+          Object.keys(TRAILER_RATES).find(
+            (key) => TRAILER_RATES[key] === trailerConfig
+          ) || "One 40' trailer";
+        const baseCost = Math.round(distance * trailerConfig.rate);
         const minCharge =
           trailerConfig.trailerCount * trailerConfig.minChargePerTrailer;
         const finalCost = Math.max(minCharge, baseCost).toFixed(2);
@@ -1313,8 +1392,7 @@
           trailerDetailsEl.classList.add("hidden");
         }
 
-        document.getElementById("trailerSize").textContent =
-          trailerConfig.label;
+        document.getElementById("trailerSize").textContent = trailerLabel;
         return finalCost;
       }
 
@@ -1345,11 +1423,11 @@
         fireRate: 8.7,
         wallOptions: {
           "2x4": {
-            baseCost: 23656,
+            baseCost: 24656,
             upcharge: 0,
           },
           "2x6": {
-            baseCost: 23656,
+            baseCost: 24656,
             upcharge: 1946,
           },
         },
