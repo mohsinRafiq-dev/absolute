@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADU Cost Estimator - Absolute</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none;
+      }
+
+      select::-ms-expand {
+        display: none;
+      }
+
+      select.form-control {
+        padding-right: 40px;
+        margin-bottom: 10px;
+      }
+
+      .select-wrapper {
+        position: relative;
+      }
+
+      .select-wrapper::after {
+        content: "\f078";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      :root {
+        --primary: #5a8738;
+        --primary-light: #5a8738;
+        --primary-dark: #5a8738;
+        --secondary: #ff0000;
+        --accent: #4cc9f0;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --gray: #6c757d;
+        --light-gray: #e9ecef;
+        --white: #ffffff;
+        --success: #52b788;
+        --warning: #f4a261;
+        --error: #e76f51;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 10px 15px rgba(0, 0, 0, 0.1);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f5f7fa;
+        color: var(--dark);
+        line-height: 1.6;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--primary),
+          var(--primary-dark)
+        );
+        color: var(--white);
+        padding: 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0) 70%
+        );
+        transform: rotate(30deg);
+      }
+
+      .header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        position: relative;
+      }
+
+      .header p {
+        font-size: 1rem;
+        opacity: 0.9;
+        position: relative;
+      }
+
+      .header i {
+        margin-right: 12px;
+        color: var(--white);
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .calculator-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+
+      @media (max-width: 992px) {
+        .calculator-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .panel {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 30px;
+        transition: var(--transition);
+      }
+
+      .panel:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .panel-title {
+        font-size: 1.4rem;
+        color: var(--primary-dark);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--light-gray);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .panel-title i {
+        color: var(--primary);
+        font-size: 1.2rem;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark);
+        font-size: 0.95rem;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid var(--light-gray);
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: var(--white);
+        color: var(--dark);
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .form-control.readonly {
+        background-color: var(--light-gray);
+        color: var(--gray);
+        cursor: not-allowed;
+      }
+
+      .form-control.highlight {
+        background-color: #e6f7ff;
+        color: var(--primary-dark);
+        font-weight: 600;
+        border-color: var(--accent);
+      }
+
+      .note {
+        font-size: 0.85rem;
+        color: var(--secondary);
+        margin-top: 6px;
+        font-style: italic;
+      }
+
+      .btn {
+        display: inline-block;
+        background: linear-gradient(
+          135deg,
+          var(--primary),
+          var(--primary-light)
+        );
+        color: var(--white);
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 16px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        width: 100%;
+        text-align: center;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: var(--transition);
+      }
+
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn i {
+        margin-right: 10px;
+      }
+
+      #map {
+        height: 350px;
+        width: 100%;
+        border-radius: var(--radius-sm);
+        margin: 20px 0;
+        border: 2px solid var(--light-gray);
+      }
+
+      .section-title {
+        color: var(--primary-dark);
+        padding-bottom: 20px;
+      }
+
+      .result-box {
+        background: var(--white);
+        border-radius: var(--radius);
+        padding: 25px;
+        margin-top: 25px;
+        border: 2px solid var(--light-gray);
+        transition: var(--transition);
+      }
+
+      .result-box.visible {
+        animation: fadeIn 0.5s ease;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--light-gray);
+      }
+
+      .result-header h2 {
+        color: var(--primary-dark);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .result-header i {
+        color: var(--primary);
+      }
+
+      .route {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--gray);
+        font-size: 0.95rem;
+      }
+
+      .route i {
+        color: var(--primary);
+      }
+
+      .detail-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--light-gray);
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--gray);
+      }
+
+      .detail-value {
+        font-weight: 600;
+        color: var(--dark);
+      }
+
+      .detail-row i {
+        color: var(--primary);
+        width: 20px;
+        text-align: center;
+      }
+
+      .shipping-cost {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 2px solid var(--light-gray);
+      }
+
+      .shipping-cost .detail-row {
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .shipping-cost .detail-value {
+        color: var(--primary-dark);
+        font-weight: 700;
+      }
+
+      .alert {
+        padding: 14px 18px;
+        border-radius: var(--radius-sm);
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.95rem;
+        border-left: 4px solid transparent;
+      }
+
+      .alert-warning {
+        background-color: rgba(244, 162, 97, 0.1);
+        color: #a16207;
+        border-left-color: var(--warning);
+      }
+
+      .alert-error {
+        background-color: rgba(231, 111, 81, 0.1);
+        color: #b91c1c;
+        border-left-color: var(--error);
+      }
+
+      .alert-success {
+        background-color: rgba(82, 183, 136, 0.1);
+        color: #166534;
+        border-left-color: var(--success);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .spinner {
+        animation: spin 1s linear infinite;
+      }
+
+      .summary-output {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--light);
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--light-gray);
+        font-family: "Courier New", monospace;
+        white-space: pre;
+        line-height: 1.8;
+        font-size: 0.9rem;
+      }
+
+      .marker-label {
+        background: white;
+        padding: 6px 10px;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow);
+        text-align: center;
+        top: -40px;
+        position: relative;
+        z-index: 1;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .warehouse-label {
+        background: white;
+        padding: 6px 10px;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow);
+        text-align: center;
+        top: -40px;
+        position: relative;
+        z-index: 1;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .origin {
+        font-weight: 600;
+        color: var(--primary-dark);
+      }
+
+      .pac-container {
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-md);
+        border: none;
+        margin-top: 5px;
+        font-family: "Poppins", sans-serif;
+        z-index: 1100 !important;
+        padding: 8px 0;
+      }
+
+      .pac-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--light-gray);
+        transition: var(--transition);
+        cursor: pointer;
+      }
+
+      .pac-item:hover {
+        background-color: var(--light);
+      }
+
+      .pac-item-query {
+        font-size: 0.95rem;
+        color: var(--primary);
+        font-weight: 500;
+      }
+
+      .pac-matched {
+        font-weight: 600;
+        color: var(--primary-dark);
+      }
+
+      .pac-icon {
+        margin-right: 10px;
+        color: var(--primary);
+      }
+      .scroll-indicator {
+        text-align: center;
+        color: var(--primary);
+        margin: 15px 0;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+
+      .scroll-indicator.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .scroll-indicator i {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 5px;
+        animation: bounce 2s infinite;
+      }
+      .fab {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary),
+          var(--primary-dark)
+        );
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        z-index: 1000;
+        transition: all 0.3s ease;
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .fab.hidden {
+        transform: translateY(100px);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .fab i {
+        font-size: 24px;
+        transition: transform 0.3s ease;
+      }
+
+      .fab.animate i {
+        animation: truckMove 1s ease;
+      }
+
+      .economy-adjustment {
+        background-color: rgba(90, 135, 56, 0.05);
+        border-radius: var(--radius-sm);
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px dashed var(--primary-light);
+      }
+
+      .economy-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(
+          to right,
+          #5a8738 0%,
+          #5a8738 var(--slider-progress, 0%),
+          #e0e0e0 var(--slider-progress, 0%),
+          #e0e0e0 100%
+        );
+        outline: none;
+        margin: 15px 0;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .economy-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #5a8738;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(90, 135, 56, 0.5);
+        border: 3px solid white;
+        transition: all 0.2s ease;
+        margin-top: -8px;
+      }
+
+      .economy-slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #5a8738;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(90, 135, 56, 0.5);
+        border: 3px solid white;
+        transition: all 0.2s ease;
+        margin-top: -8px;
+      }
+
+      .economy-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        cursor: pointer;
+        background: transparent;
+        border-radius: 4px;
+      }
+
+      .economy-slider::-moz-range-track {
+        width: 100%;
+        height: 8px;
+        cursor: pointer;
+        background: transparent;
+        border-radius: 4px;
+      }
+
+      .economy-explanation {
+        font-size: 0.9rem;
+        color: var(--gray);
+        margin-top: 8px;
+      }
+
+      .slider-marks {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+      }
+
+      .slider-mark {
+        font-size: 12px;
+        color: #888;
+        position: relative;
+        width: 1px;
+        text-align: center;
+      }
+
+      .slider-mark::before {
+        content: "";
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 8px;
+        width: 1px;
+        background: #ddd;
+      }
+
+      .slider-mark:nth-child(5n + 1)::before {
+        height: 12px;
+        background: #bbb;
+      }
+
+      .dropdown-hint {
+        font-size: 0.8rem;
+        color: var(--primary);
+        margin-left: 4px;
+      }
+
+      .trailer-details {
+        margin-top: 15px;
+        padding: 15px;
+        background-color: rgba(90, 135, 56, 0.05);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--primary-light);
+      }
+
+      .trailer-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--light-gray);
+      }
+
+      .trailer-row:last-child {
+        border-bottom: none;
+      }
+
+      .trailer-row.total {
+        font-weight: 700;
+        color: var(--primary-dark);
+        border-top: 2px solid var(--light-gray);
+        margin-top: 8px;
+        padding-top: 12px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      @keyframes truckMove {
+        0% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(5px);
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1><i class="fas fa-home"></i>ADU Cost Estimator</h1>
+        <h3><i>FrameUpNow Steel Skeleton at actual cost.</i></h3>
+        <p>
+          <i>All else is estimated, as the customer will purchase elsewhere.</i>
+        </p>
+        <p>Absolute Model - 774 sq ft (Livable Area)</p>
+      </div>
+
+      <div class="content">
+        <form id="aduForm">
+          <div class="calculator-grid">
+            <div class="panel">
+              <h2 class="panel-title">
+                <i class="fas fa-calculator"></i> Construction Costs
+              </h2>
+
+              <div class="form-group">
+                <label class="form-label">Plan Name</label>
+                <input
+                  class="form-control readonly"
+                  value="Absolute"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Square Feet Under Roof</label>
+                <input
+                  class="form-control readonly"
+                  id="sqft"
+                  value="774"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Estimated Cost of Jurisdiction Permit
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="permitCost"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="1000">$1,000</option>
+                    <option value="2000" selected>$2,000</option>
+                    <option value="3000">$3,000</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Slab or Floor Joists
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="foundationType"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="Slab" selected>Slab</option>
+                    <option value="Floor Joists">Floor Joists + $4590</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Estimated Cost of Site, Foundation and Utilities Connection
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="foundation"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="Low" selected>Low</option>
+                    <option value="Probable">Probable</option>
+                    <option value="Median">Median</option>
+                    <option value="Higher">Higher</option>
+                    <option value="Unusual Conditions">
+                      Unusual Conditions
+                    </option>
+                  </select>
+                </div>
+                <input
+                  class="form-control readonly"
+                  id="foundationCost"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >2x4 or 2x6
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="walls"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="2x4" selected>2x4 Exterior Studs</option>
+                    <option value="2x6">2x6 Exterior Studs + $1946</option>
+                  </select>
+                </div>
+                <label for=""
+                  >Actual Cost of FrameUpNow Steel Skeleton (Frame &
+                  Trusses)</label
+                >
+                <input class="form-control readonly" id="wallCost" readonly />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Finishing Material Level
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="finish"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="Minimal Budget">Minimal Budget</option>
+                    <option value="Modest" selected>Modest</option>
+                    <option value="Average">Average</option>
+                    <option value="Premium">Premium</option>
+                    <option value="Designer">Designer</option>
+                  </select>
+                </div>
+                <label for="">Estimated Cost of Finishing Materials</label>
+                <input class="form-control readonly" id="finishCost" readonly />
+                <p class="note">
+                  We provide a generic materials shopping list that you can
+                  tailor to your budget
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Labor Type
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="labor"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="DIY" selected>DIY</option>
+                    <option value="DIY & Sub">DIY & Subcontractor</option>
+                    <option value="General">General Contractor</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Estimated Cost of Labor</label>
+                <input class="form-control readonly" id="laborCost" readonly />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Fire Resistant Exterior Materials
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="fire"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="No" selected>No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+                <label for="">Estimated Cost of Fire Exterior Materials</label>
+                <input class="form-control readonly" id="fireCost" readonly />
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">
+                <i class="fas fa-dollar-sign"></i> Financial Summary
+              </h2>
+
+              <div class="form-group">
+                <label class="form-label">Total Without Labor</label>
+                <input
+                  class="form-control readonly"
+                  id="totalWithoutLabor"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Total Cost Including Labor</label>
+                <input class="form-control highlight" id="totalCost" readonly />
+              </div>
+
+              <div class="economy-adjustment">
+                <h3 class="section-title">
+                  <i class="fas fa-chart-line"></i> Adjust for Local Economy
+                </h3>
+
+                <div class="economy-percentage" id="economyPercentage">
+                  0% (Base)
+                </div>
+
+                <input
+                  type="range"
+                  id="economyAdjustment"
+                  class="economy-slider"
+                  min="0"
+                  max="40"
+                  step="5"
+                  value="0"
+                  oninput="updateEconomyAdjustment(this.value)"
+                />
+
+                <div class="economy-explanation">
+                  Adjust the slider based on your local economy. Higher cost
+                  areas may need to increase the percentage.
+                </div>
+
+                <div class="form-group" style="margin-top: 20px">
+                  <label class="form-label"
+                    >Total Cost Including Labor & Adjustments</label
+                  >
+                  <input
+                    class="form-control highlight"
+                    id="adjustedTotalCost"
+                    readonly
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Down Payment %
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="downPct"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option value="5">5%</option>
+                    <option value="10">10%</option>
+                    <option value="15" selected>15%</option>
+                    <option value="20">20%</option>
+                    <option value="25">25%</option>
+                    <option value="30">30%</option>
+                    <option value="35">35%</option>
+                    <option value="40">40%</option>
+                    <option value="45">45%</option>
+                    <option value="50">50%</option>
+                    <option value="55">55%</option>
+                    <option value="60">60%</option>
+                    <option value="65">65%</option>
+                    <option value="70">70%</option>
+                    <option value="75">75%</option>
+                    <option value="80">80%</option>
+                  </select>
+                </div>
+                <input class="form-control readonly" id="downAmount" readonly />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Estimated Amount to Finance</label>
+                <input
+                  class="form-control readonly"
+                  id="financeAmount"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Loan Term (Years)
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="term"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option>5</option>
+                    <option>10</option>
+                    <option>15</option>
+                    <option selected>20</option>
+                    <option>25</option>
+                    <option>30</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"
+                  >Interest Rate (%)
+                  <span class="dropdown-hint"
+                    >(Select from dropdown)</span
+                  ></label
+                >
+                <div class="select-wrapper">
+                  <select
+                    id="interestRate"
+                    class="form-control"
+                    onchange="updateFieldValues()"
+                  >
+                    <option>3.00</option>
+                    <option>3.50</option>
+                    <option>4.00</option>
+                    <option>4.50</option>
+                    <option>5.00</option>
+                    <option selected>5.50</option>
+                    <option>6.00</option>
+                    <option>6.50</option>
+                    <option>7.00</option>
+                    <option>7.50</option>
+                    <option>8.00</option>
+                    <option>8.50</option>
+                    <option>9.00</option>
+                    <option>9.50</option>
+                    <option>10.00</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Estimated Monthly Payment</label>
+                <input class="form-control readonly" id="monthly" readonly />
+              </div>
+
+              <h2 class="section-title">
+                <i class="fas fa-map-marked-alt"></i> Shipping Details
+              </h2>
+
+              <div class="form-group">
+                <label><b>Origin:</b></label>
+                <div class="fixed-origin">
+                  <p>
+                    📍Our Warehouse:
+                    <span class="origin"> Benson, AZ 85602</span>
+                  </p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label"><b>Destination Address:</b></label>
+                <input
+                  type="text"
+                  id="destination"
+                  class="form-control"
+                  placeholder="Enter ZIP code and select from dropdown"
+                  required
+                  autocomplete="off"
+                />
+                <div id="addressValidation" class="hidden"></div>
+              </div>
+
+              <button type="button" id="calculateBtn" class="btn">
+                <i class="fas fa-truck"></i> Calculate Shipping Cost
+              </button>
+              <div id="scrollIndicator" class="scroll-indicator hidden">
+                <i class="fas fa-chevron-down"></i>
+                <span>Scroll for results</span>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div id="shippingResult" class="result-box hidden">
+          <div class="result-header">
+            <h2><i class="fas fa-shipping-fast"></i> Shipping Details</h2>
+          </div>
+
+          <div class="route">
+            <span id="fromLocation">Benson, AZ 85602</span>
+            <i class="fas fa-arrow-right"></i>
+            <span id="toLocation"></span>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-home"></i>
+              <span>Model:</span>
+            </div>
+            <div class="detail-value">Absolute Model - 774 sq ft</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-truck"></i>
+              <span>Trailer Required:</span>
+            </div>
+            <div class="detail-value" id="trailerSize">40' trailer</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-route"></i>
+              <span>Distance:</span>
+            </div>
+            <div class="detail-value" id="distance">0 miles</div>
+          </div>
+
+          <div id="trailerDetails" class="trailer-details hidden"></div>
+
+          <div id="minimumNote" class="hidden alert alert-warning">
+            <i class="fas fa-info-circle"></i>
+            <span>Minimum shipping charge applied based on trailer count.</span>
+          </div>
+
+          <div class="shipping-cost">
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Shipping Cost:</span>
+              </div>
+              <div class="detail-value">$<span id="shippingCost">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="map" class="hidden"></div>
+
+        <div id="error" class="hidden alert alert-error">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span class="error-message"></span>
+        </div>
+      </div>
+    </div>
+    <div id="fab" class="fab hidden">
+      <i class="fas fa-truck"></i>
+    </div>
+
+    <script>
+      const ADU_PLAN = {
+        name: "Absolute",
+        sqft: 774,
+        linearFeet: 52,
+      };
+
+      const TRAILER_RATES = {
+        RATE_40: {
+          maxLinearFeet: 42,
+          rate: 2.22,
+          label: "One 40' trailer",
+          trailerCount: 1,
+          minChargePerTrailer: 1500,
+        },
+        RATE_53: {
+          maxLinearFeet: 55,
+          rate: 3.6,
+          label: "One 53' trailer",
+          trailerCount: 1,
+          minChargePerTrailer: 1500,
+        },
+        RATE_84: {
+          maxLinearFeet: 84,
+          rate: 4.4,
+          label: "Two 40' trailers",
+          trailerCount: 2,
+          minChargePerTrailer: 1500,
+        },
+        RATE_126: {
+          maxLinearFeet: 126,
+          rate: 6.8,
+          label: "Three 40' trailers",
+          trailerCount: 3,
+          minChargePerTrailer: 1500,
+        },
+        RATE_127_PLUS: {
+          maxLinearFeet: 999,
+          rate: 9.0,
+          label: "Four 40' trailers",
+          trailerCount: 4,
+          minChargePerTrailer: 1500,
+        },
+      };
+
+      const ECONOMY_ADJUSTMENT = {
+        0: 0,
+        5: 0.05,
+        10: 0.1,
+        15: 0.15,
+        20: 0.2,
+        25: 0.25,
+        30: 0.3,
+        35: 0.35,
+        40: 0.4,
+      };
+
+      function getTrailerConfig(linearFeet) {
+        if (linearFeet <= 42) return TRAILER_RATES.RATE_40;
+        if (linearFeet <= 55) return TRAILER_RATES.RATE_53;
+        if (linearFeet <= 84) return TRAILER_RATES.RATE_84;
+        if (linearFeet <= 126) return TRAILER_RATES.RATE_126;
+        return TRAILER_RATES.RATE_127_PLUS;
+      }
+
+      function calculateShippingCost(distance) {
+        const trailerConfig = getTrailerConfig(ADU_PLAN.linearFeet);
+        const baseCost = distance * trailerConfig.rate;
+        const minCharge =
+          trailerConfig.trailerCount * trailerConfig.minChargePerTrailer;
+        const finalCost = Math.max(minCharge, baseCost).toFixed(2);
+
+        document
+          .getElementById("minimumNote")
+          .classList.toggle("hidden", baseCost >= minCharge);
+
+        const trailerDetailsEl = document.getElementById("trailerDetails");
+        if (baseCost < minCharge) {
+          trailerDetailsEl.classList.remove("hidden");
+          trailerDetailsEl.innerHTML = `
+            <div class="trailer-row">
+              <span>Minimum charge (${trailerConfig.trailerCount} trailer${
+            trailerConfig.trailerCount > 1 ? "s" : ""
+          } × $${trailerConfig.minChargePerTrailer}):</span>
+              <span>$${minCharge.toFixed(2)}</span>
+            </div>
+            <div class="trailer-row total">
+              <span>Final shipping cost:</span>
+              <span>$${finalCost}</span>
+            </div>
+          `;
+        } else {
+          trailerDetailsEl.classList.add("hidden");
+        }
+
+        document.getElementById("trailerSize").textContent =
+          trailerConfig.label;
+        return finalCost;
+      }
+
+      const FOUNDATION_RATES = {
+        Low: 12,
+        Probable: 16,
+        Median: 20,
+        Higher: 25,
+        "Unusual Conditions": 40,
+      };
+
+      const MIN_FOUNDATION_COST = 9900;
+
+      const COST_DATA = {
+        foundation: FOUNDATION_RATES,
+        finishing: {
+          "Minimal Budget": 30,
+          Modest: 64,
+          Average: 100,
+          Premium: 150,
+          Designer: 200,
+        },
+        labor: {
+          DIY: 0,
+          "DIY & Sub": 30,
+          General: 60,
+        },
+        fireRate: 8.7,
+        wallOptions: {
+          "2x4": {
+            baseCost: 23656,
+            upcharge: 0,
+          },
+          "2x6": {
+            baseCost: 23656,
+            upcharge: 1946,
+          },
+        },
+        foundationUpcharges: {
+          Slab: 0,
+          "Floor Joists": 4590,
+        },
+      };
+
+      const WAREHOUSE_LOCATION = {
+        lat: 31.9678,
+        lng: -110.2945,
+        address: "Our Warehouse, Benson, AZ 85602",
+      };
+
+      let map;
+      let directionsRenderer;
+      let directionsService;
+      let googleMapsLoaded = false;
+      let autocomplete;
+      let destinationPlace = null;
+      let warehouseMarker = null;
+      let destinationMarker = null;
+      let lastScrollTop = 0;
+      let fab;
+
+      function formatCurrency(val) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(val);
+      }
+
+      function formatCityStateZip(place) {
+        if (!place || !place.address_components) return "";
+
+        let city = "";
+        let state = "";
+        let zip = "";
+
+        for (const component of place.address_components) {
+          if (component.types.includes("locality")) {
+            city = component.long_name;
+          }
+          if (component.types.includes("administrative_area_level_1")) {
+            state = component.short_name;
+          }
+          if (component.types.includes("postal_code")) {
+            zip = component.long_name;
+          }
+        }
+
+        return `${city}, ${state} ${zip}`;
+      }
+
+      function calculateFoundationCost(sqft, foundationType) {
+        const ratePerSqft = FOUNDATION_RATES[foundationType];
+        let baseCost = sqft * ratePerSqft;
+        return Math.max(baseCost, MIN_FOUNDATION_COST);
+      }
+
+      function updateSliderBackground(value) {
+        const slider = document.getElementById("economyAdjustment");
+        const percentage = (value / slider.max) * 100;
+        slider.style.setProperty("--slider-progress", `${percentage}%`);
+      }
+
+      function updateEconomyAdjustment(value) {
+        document.getElementById("economyPercentage").textContent = `${value}% ${
+          value == 0 ? "(Base)" : ""
+        }`;
+
+        updateSliderBackground(value);
+
+        updateFieldValues();
+      }
+
+      function updateFieldValues() {
+        try {
+          const sqft = ADU_PLAN.sqft;
+          const permitCost = parseInt(
+            document.getElementById("permitCost").value
+          );
+
+          const foundationType =
+            document.getElementById("foundationType").value;
+          const wallType = document.getElementById("walls").value;
+          const finishLevel = document.getElementById("finish").value;
+          const laborType = document.getElementById("labor").value;
+          const fireResistant = document.getElementById("fire").value === "Yes";
+          const downPct =
+            parseFloat(document.getElementById("downPct").value) / 100;
+          const termYears = parseInt(document.getElementById("term").value);
+          const interestRate =
+            parseFloat(document.getElementById("interestRate").value) /
+            100 /
+            12;
+          const economyAdjustment =
+            parseFloat(document.getElementById("economyAdjustment").value) /
+            100;
+
+          const foundationOption = document.getElementById("foundation").value;
+          const foundationCost = calculateFoundationCost(
+            sqft,
+            foundationOption
+          );
+
+          const wallOption = COST_DATA.wallOptions[wallType];
+          const foundationUpcharge =
+            COST_DATA.foundationUpcharges[foundationType];
+
+          const skeletonCost =
+            wallOption.baseCost + wallOption.upcharge + foundationUpcharge;
+          const finishingCost = sqft * COST_DATA.finishing[finishLevel];
+          const laborCost = sqft * COST_DATA.labor[laborType];
+          const fireCost = fireResistant ? sqft * COST_DATA.fireRate : 0;
+
+          const totalWithoutLabor =
+            permitCost +
+            foundationCost +
+            skeletonCost +
+            finishingCost +
+            fireCost;
+          const totalWithLabor = totalWithoutLabor + laborCost;
+          const adjustedTotal = totalWithLabor * (1 + economyAdjustment);
+
+          const downAmount = adjustedTotal * downPct;
+          const financeAmount = adjustedTotal - downAmount;
+          const n = termYears * 12;
+          const monthly =
+            interestRate === 0
+              ? financeAmount / n
+              : (financeAmount * interestRate * Math.pow(1 + interestRate, n)) /
+                (Math.pow(1 + interestRate, n) - 1);
+
+          document.getElementById("foundationCost").value =
+            formatCurrency(foundationCost);
+          document.getElementById("wallCost").value =
+            formatCurrency(skeletonCost);
+          document.getElementById("finishCost").value =
+            formatCurrency(finishingCost);
+          document.getElementById("laborCost").value =
+            formatCurrency(laborCost);
+          document.getElementById("fireCost").value = formatCurrency(fireCost);
+          document.getElementById("totalWithoutLabor").value =
+            formatCurrency(totalWithoutLabor);
+          document.getElementById("totalCost").value =
+            formatCurrency(totalWithLabor);
+          document.getElementById("adjustedTotalCost").value =
+            formatCurrency(adjustedTotal);
+          document.getElementById("downAmount").value =
+            formatCurrency(downAmount);
+          document.getElementById("financeAmount").value =
+            formatCurrency(financeAmount);
+          document.getElementById("monthly").value = formatCurrency(monthly);
+        } catch (error) {
+          console.error("Calculation error:", error);
+          showError("An error occurred during calculations");
+        }
+      }
+
+      function initializeForm() {
+        document.getElementById("permitCost").value = "2000";
+        document.getElementById("foundation").value = "Low";
+        document.getElementById("walls").value = "2x4";
+        document.getElementById("finish").value = "Modest";
+        document.getElementById("labor").value = "DIY";
+        document.getElementById("fire").value = "No";
+        document.getElementById("downPct").value = "20";
+        document.getElementById("term").value = "20";
+        document.getElementById("interestRate").value = "5.50";
+        document.getElementById("foundationType").value = "Slab";
+        document.getElementById("economyAdjustment").value = "0";
+
+        updateFieldValues();
+      }
+
+      function showError(message) {
+        const errorDiv = document.getElementById("error");
+        if (errorDiv) {
+          errorDiv.querySelector(".error-message").textContent = message;
+          errorDiv.classList.remove("hidden");
+        }
+      }
+
+      async function initMap() {
+        try {
+          const mapDiv = document.getElementById("map");
+          if (!mapDiv) throw new Error("Map container not found");
+
+          const { Map } = await google.maps.importLibrary("maps");
+          const { DirectionsRenderer, DirectionsService } =
+            await google.maps.importLibrary("routes");
+          const { Autocomplete } = await google.maps.importLibrary("places");
+
+          map = new Map(mapDiv, {
+            center: {
+              lat: WAREHOUSE_LOCATION.lat,
+              lng: WAREHOUSE_LOCATION.lng,
+            },
+            zoom: 12,
+            mapId: "FUN_ADU_MAP",
+          });
+
+          directionsService = new DirectionsService();
+          directionsRenderer = new DirectionsRenderer({
+            map: map,
+            suppressMarkers: true,
+            polylineOptions: { strokeColor: "#4361ee", strokeWeight: 5 },
+          });
+
+          warehouseMarker = new google.maps.Marker({
+            position: {
+              lat: WAREHOUSE_LOCATION.lat,
+              lng: WAREHOUSE_LOCATION.lng,
+            },
+            map: map,
+            title: "FUN ADU Warehouse",
+            icon: {
+              url:
+                "data:image/svg+xml;charset=UTF-8," +
+                encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+              <rect x="15" y="50" width="70" height="40" fill="#4361ee"/>
+              <polygon points="50,15 15,50 85,50" fill="#3a0ca3"/>
+              <rect x="35" y="60" width="10" height="30" fill="#FFFFFF"/>
+              <rect x="55" y="60" width="10" height="30" fill="#FFFFFF"/>
+            </svg>`),
+              scaledSize: new google.maps.Size(35, 35),
+              anchor: new google.maps.Point(20, 40),
+            },
+            label: {
+              text: "Warehouse",
+              color: "#3a0ca3",
+              fontWeight: "bold",
+              fontSize: "14px",
+              offset: new google.maps.Size(0, -42),
+              className: "warehouse-label",
+            },
+          });
+
+          autocomplete = new Autocomplete(
+            document.getElementById("destination"),
+            {
+              fields: [
+                "address_components",
+                "geometry",
+                "formatted_address",
+                "types",
+              ],
+              types: ["(regions)"],
+              componentRestrictions: { country: "us" },
+            }
+          );
+
+          autocomplete.addListener("place_changed", () => {
+            destinationPlace = autocomplete.getPlace();
+            validateAddress();
+          });
+
+          googleMapsLoaded = true;
+        } catch (error) {
+          console.error("Map initialization failed:", error);
+          showError(
+            "Failed to initialize map services. Please refresh the page."
+          );
+        }
+      }
+
+      function validateAddress() {
+        const validationEl = document.getElementById("addressValidation");
+        if (!validationEl) return false;
+
+        if (!destinationPlace || !destinationPlace.geometry) {
+          validationEl.className = "alert alert-error";
+          validationEl.innerHTML =
+            '<i class="fas fa-exclamation-circle"></i><span>Please select a valid location</span>';
+          validationEl.classList.remove("hidden");
+          return false;
+        }
+
+        const addressComponents = destinationPlace.address_components;
+        const isValid =
+          addressComponents.some((c) => c.types.includes("locality")) &&
+          addressComponents.some((c) =>
+            c.types.includes("administrative_area_level_1")
+          ) &&
+          addressComponents.some((c) => c.types.includes("postal_code"));
+
+        if (isValid) {
+          validationEl.className = "alert alert-success";
+          validationEl.innerHTML =
+            '<i class="fas fa-check-circle"></i><span>Valid location</span>';
+        } else {
+          validationEl.className = "alert alert-error";
+          validationEl.innerHTML =
+            '<i class="fas fa-exclamation-circle"></i><span>Please enter a complete location (City, State ZIP)</span>';
+        }
+        validationEl.classList.remove("hidden");
+
+        return isValid;
+      }
+
+      async function calculateDistance(origin, destination) {
+        return new Promise((resolve, reject) => {
+          if (!destination || !destinationPlace?.geometry) {
+            reject(new Error("Please select a valid destination address"));
+            return;
+          }
+
+          directionsService.route(
+            {
+              origin: origin,
+              destination: destination,
+              travelMode: google.maps.TravelMode.DRIVING,
+            },
+            (result, status) => {
+              if (status === "OK") {
+                resolve({
+                  miles: result.routes[0].legs[0].distance.value / 1609.34,
+                  route: result,
+                });
+              } else {
+                reject(new Error(`Failed to calculate distance: ${status}`));
+              }
+            }
+          );
+        });
+      }
+
+      async function updateMap(route) {
+        try {
+          if (!route?.routes?.[0]) throw new Error("No valid route found");
+
+          if (destinationMarker) destinationMarker.setMap(null);
+
+          const routeEndPoint = route.routes[0].legs[0].end_location;
+
+          destinationMarker = new google.maps.Marker({
+            position: routeEndPoint,
+            map: map,
+            title: "Delivery Destination",
+            icon: {
+              url:
+                "data:image/svg+xml;charset=UTF-8," +
+                encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path fill="#f72585" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>`),
+              scaledSize: new google.maps.Size(40, 40),
+              anchor: new google.maps.Point(17.5, 35),
+            },
+            label: {
+              text: "Destination",
+              color: "#f72585",
+              fontWeight: "bold",
+              fontSize: "14px",
+              offset: new google.maps.Size(0, -45),
+              className: "marker-label",
+            },
+          });
+
+          directionsRenderer.setDirections(route);
+
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend(
+            new google.maps.LatLng(
+              WAREHOUSE_LOCATION.lat,
+              WAREHOUSE_LOCATION.lng
+            )
+          );
+          bounds.extend(routeEndPoint);
+          map.fitBounds(bounds);
+        } catch (error) {
+          console.error("Route display failed:", error);
+          showError(
+            "Could not draw the route. Please check the destination address."
+          );
+        }
+      }
+
+      function handleScroll() {
+        const st = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (st > lastScrollTop && st > 100) {
+          fab.classList.add("hidden");
+        } else if (st < lastScrollTop) {
+          fab.classList.remove("hidden");
+        }
+
+        lastScrollTop = st <= 0 ? 0 : st;
+      }
+
+      function animateFab() {
+        fab.classList.add("animate");
+        setTimeout(() => {
+          fab.classList.remove("animate");
+        }, 1000);
+      }
+
+      function scrollToCalculateButton() {
+        const calculateBtn = document.getElementById("calculateBtn");
+        calculateBtn.scrollIntoView({ behavior: "smooth" });
+      }
+
+      async function calculateShipping() {
+        const resultDiv = document.getElementById("shippingResult");
+        const errorDiv = document.getElementById("error");
+        const calculateBtn = document.getElementById("calculateBtn");
+        const scrollIndicator = document.getElementById("scrollIndicator");
+
+        resultDiv.classList.add("hidden");
+        errorDiv.classList.add("hidden");
+        document.getElementById("minimumNote").classList.add("hidden");
+        document.getElementById("trailerDetails").classList.add("hidden");
+
+        if (!validateAddress()) {
+          showError("Please enter a complete destination address");
+          return;
+        }
+
+        calculateBtn.innerHTML =
+          '<i class="fas fa-spinner spinner"></i> Calculating...';
+        calculateBtn.disabled = true;
+
+        try {
+          if (!googleMapsLoaded) await initMap();
+
+          const { miles, route } = await calculateDistance(
+            WAREHOUSE_LOCATION.address,
+            destinationPlace.formatted_address
+          );
+
+          const shippingCost = calculateShippingCost(miles);
+          const formattedAddress = formatCityStateZip(destinationPlace);
+
+          document.getElementById("distance").textContent = `${miles.toFixed(
+            1
+          )} miles`;
+          document.getElementById("shippingCost").textContent = shippingCost;
+          document.getElementById("toLocation").textContent = formattedAddress;
+
+          document.getElementById("map").classList.remove("hidden");
+          resultDiv.classList.remove("hidden");
+          resultDiv.classList.add("visible");
+
+          scrollIndicator.classList.remove("hidden");
+
+          resultDiv.scrollIntoView({ behavior: "smooth" });
+
+          await updateMap(route);
+        } catch (error) {
+          console.error("Shipping calculation error:", error);
+          showError(error.message || "An error occurred during calculation");
+        } finally {
+          calculateBtn.innerHTML =
+            '<i class="fas fa-truck"></i> Calculate Shipping Cost';
+          calculateBtn.disabled = false;
+        }
+      }
+
+      async function initApplication() {
+        try {
+          initializeForm();
+
+          fab = document.getElementById("fab");
+          fab.addEventListener("click", () => {
+            animateFab();
+            scrollToCalculateButton();
+          });
+
+          window.addEventListener("scroll", handleScroll);
+
+          document
+            .getElementById("calculateBtn")
+            .addEventListener("click", calculateShipping);
+          document.querySelectorAll("select, input").forEach((el) => {
+            if (el.id !== "destination")
+              el.addEventListener("change", updateFieldValues);
+          });
+          document
+            .getElementById("aduForm")
+            .addEventListener("submit", (e) => e.preventDefault());
+
+          if (!window.google?.maps) {
+            const script = document.createElement("script");
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDNdE2tsRW3yaX7Be-2_coF4oYPFyQ8s9I&libraries=places,marker,routes&loading=async&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = () =>
+              showError(
+                "Failed to load Google Maps. Please check your internet connection."
+              );
+            document.head.appendChild(script);
+          } else {
+            await initMap();
+          }
+        } catch (error) {
+          console.error("Initialization error:", error);
+          showError("Failed to initialize application");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", initApplication);
+    </script>
+  </body>
+</html>
